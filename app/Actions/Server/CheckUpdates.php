@@ -70,6 +70,7 @@ class CheckUpdates
                 'ubuntu', 'debian', 'raspbian' => 'apt',
                 'centos', 'fedora', 'rhel', 'ol', 'rocky', 'almalinux', 'amzn' => 'dnf',
                 'sles', 'opensuse-leap', 'opensuse-tumbleweed' => 'zypper',
+                'nixos' => 'nix',
                 default => null
             };
 
@@ -107,6 +108,15 @@ class CheckUpdates
                     $out['package_manager'] = $packageManager;
 
                     return $out;
+                case 'nix':
+                    // A flake-managed host is rebuilt, never patched package by package.
+                    // ServerPatchCheckJob notifies the team on any error key, weekly, per server.
+                    return [
+                        'osId' => $osId,
+                        'package_manager' => $packageManager,
+                        'updates' => [],
+                        'total_updates' => 0,
+                    ];
                 default:
                     return [
                         'osId' => $osId,

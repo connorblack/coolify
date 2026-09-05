@@ -18,6 +18,10 @@ class InstallPrerequisites
             throw new \Exception('Server OS type is not supported for automated installation. Please install prerequisites manually.');
         }
 
+        if ($supported_os_type->contains('nixos')) {
+            return remote_process([$this->getNixosPrerequisitesCommand()], $server);
+        }
+
         $command = collect([]);
 
         if ($supported_os_type->contains('debian')) {
@@ -60,5 +64,16 @@ class InstallPrerequisites
         $command->push("echo 'Prerequisites installed successfully.'");
 
         return remote_process($command, $server);
+    }
+
+    private function getNixosPrerequisitesCommand(): string
+    {
+        return "echo 'NixOS Prerequisites Guide:' && ".
+               "echo '' && ".
+               "echo 'Coolify does not install packages on NixOS. Declare them in the host configuration:' && ".
+               "echo '' && ".
+               "echo 'environment.systemPackages = with pkgs; [ curl wget git jq ];' && ".
+               "echo '' && ".
+               "echo 'Rebuild the host with your usual nixos-rebuild or deployment tool, then click Retry to continue validation.'";
     }
 }
