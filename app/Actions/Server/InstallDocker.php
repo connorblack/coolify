@@ -79,6 +79,13 @@ class InstallDocker
                 $command = $command->merge([$this->getSuseDockerInstallCommand()]);
             } elseif ($supported_os_type->contains('arch')) {
                 $command = $command->merge([$this->getArchDockerInstallCommand()]);
+            } elseif ($supported_os_type->contains('nixos')) {
+                // NixOS declares Docker in the host configuration. Print guidance and stop here:
+                // the daemon.json merge and `systemctl restart docker` below are not valid on a
+                // declaratively managed host (adapted from coollabsio/coolify#7170).
+                $command = $command->merge([$this->getNixosDockerInstallCommand()]);
+
+                return remote_process($command, $server);
             } else {
                 $command = $command->merge([$this->getGenericDockerInstallCommand()]);
             }
@@ -157,5 +164,21 @@ class InstallDocker
     private function getGenericDockerInstallCommand(): string
     {
         return 'curl -fsSL https://get.docker.com | sh';
+    }
+
+    private function getNixosDockerInstallCommand(): string
+    {
+        return "echo 'NixOS Docker Configuration Guide:' && ".
+               "echo '' && ".
+               "echo 'Coolify does not install packages on NixOS. Declare Docker in the host configuration:' && ".
+               "echo '' && ".
+               "echo 'virtualisation.docker = {' && ".
+               "echo '  enable = true;' && ".
+               "echo '  enableOnBoot = true;' && ".
+               "echo '  daemon.settings = { log-driver = \"json-file\"; log-opts = { max-size = \"10m\"; max-file = \"3\"; }; };' && ".
+               "echo '};' && ".
+               "echo 'environment.systemPackages = with pkgs; [ docker-compose git curl jq ];' && ".
+               "echo '' && ".
+               "echo 'Rebuild the host with your usual nixos-rebuild or deployment tool, then click Retry to continue validation.'";
     }
 }
