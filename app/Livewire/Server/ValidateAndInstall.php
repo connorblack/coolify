@@ -225,7 +225,11 @@ class ValidateAndInstall extends Component
         if (! $this->docker_installed || ! $this->docker_compose_installed) {
             if ($this->install) {
                 if ($this->number_of_tries == $this->max_tries) {
-                    $this->error = 'Docker Engine could not be installed. Please install Docker manually before continuing: <a target="_blank" class="underline" href="https://docs.docker.com/engine/install/#server">documentation</a>.';
+                    if ($this->supported_os_type && $this->supported_os_type->contains('nixos')) {
+                        $this->error = 'Docker is not installed on this NixOS host. Declare it in the host configuration (see the installation logs), rebuild the host, then click Retry.';
+                    } else {
+                        $this->error = 'Docker Engine could not be installed. Please install Docker manually before continuing: <a target="_blank" class="underline" href="https://docs.docker.com/engine/install/#server">documentation</a>.';
+                    }
                     $this->server->update([
                         'validation_logs' => $this->error,
                     ]);
@@ -243,7 +247,11 @@ class ValidateAndInstall extends Component
                     return;
                 }
             } else {
-                $this->error = 'Docker Engine is not installed. Please install Docker manually before continuing: <a target="_blank" class="underline" href="https://docs.docker.com/engine/install/#server">documentation</a>.';
+                if ($this->supported_os_type && $this->supported_os_type->contains('nixos')) {
+                    $this->error = 'Docker is not installed on this NixOS host. Declare virtualisation.docker in the host configuration and rebuild the host.';
+                } else {
+                    $this->error = 'Docker Engine is not installed. Please install Docker manually before continuing: <a target="_blank" class="underline" href="https://docs.docker.com/engine/install/#server">documentation</a>.';
+                }
                 $this->server->update([
                     'validation_logs' => $this->error,
                 ]);
