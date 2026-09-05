@@ -90,6 +90,7 @@ const SUPPORTED_OS = [
     'sles opensuse-leap opensuse-tumbleweed',
     'arch',
     'alpine',
+    'nixos',
 ];
 
 const NEEDS_TO_CONNECT_TO_PREDEFINED_NETWORK = [
